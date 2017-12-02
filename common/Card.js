@@ -27,7 +27,7 @@ Card.prototype.value = function() {
 
 	r = parseInt(r);
 
-	if (r <= 10 && r >= 1)
+	if (r < 10 && r > 1)
 		return r;
 
 	return -1;

@@ -65,7 +65,7 @@ http.listen(port, function(){
   logger.debug('listening on port:'+port);
 });
 socket = io.listen(8889);
-socket.set("transports", ["websocket"]);
+socket.set("transports", "websocket");
 
 //Wait for the intial client connection
 socket.sockets.on('connection', function(client){
@@ -95,10 +95,11 @@ function handleExchange(handID, cards) {
   for(var i=0; i<cards.length; i++) {
     logger.debug("card");
     //console.log("player exists"+client.player.hand.showing);
-    for(var j=(client.player.hand.faceDown.length-1); j>=0; j--) {
-      logger.debug(client.player.hand.faceDown[j]);
+    startNum = client.player.hand.faceDown.length-1;
+    for(var j=startNum; j>=0; j--) {
+      logger.debug(client.player.hand.faceDown[j].rank+client.player.hand.faceDown[j].suit+cards[i]);
       //check if the rank and suit match
-      if(cards[i].indexOf(client.player.hand.faceDown[j].rank) !== -1 && cards[i].indexOf(client.player.hand.faceDown[j].suit) !== -1) {
+      if(cards[i].indexOf("-"+client.player.hand.faceDown[j].rank) !== -1 && cards[i].indexOf(client.player.hand.faceDown[j].suit) !== -1) {
         logger.debug("dropped a card"+j);
         client.player.hand.faceDown.splice(j,1);
       }
@@ -110,7 +111,7 @@ function handleExchange(handID, cards) {
     client.player.hand.addCard(FACEUP, deck.getCard());
   }
 
-  client.player.exchanged=true;
+  client.player.hand.exchanged=true;
 
   // Notify players of the current turn
   socket.sockets.emit("exchange", {
@@ -182,6 +183,7 @@ function welcome(client) {
   var newSystemID = client.handshake.session.userid;
   var newHand = new Hand(0);
 	var newPlayer = new Player(newPlayerID, newSystemID, "Player " + newPlayerID, newHand);
+  newPlayer.hand.waitingForAI=true; //humans play after the AI's
 
 	// Give hand to new player
 	dealHand(newPlayer, FACEDOWN);
@@ -202,7 +204,7 @@ function welcome(client) {
 	client.emit("welcome", newPlayer);
 
 	// Notify existing clients of new arrival
-	filterBroadcastPlayer("newPlayer", client, newPlayer)
+	broadcastPlayer("newPlayer", client, newPlayer)
 
 	// Notify new player of all existing clients
 	for (var c in clients) {
@@ -334,7 +336,7 @@ function addAI(client) {
   ai.hand.showing.sort(function(a,b) {return a.value()-b.value()});
 
 	// Notify existing clients of new player arrival
-	filterBroadcastPlayer("newPlayer", null, ai)
+	broadcastPlayer("newPlayer", null, ai)
 
 	var aiClient = {
 		"id": "AI" + playerID
@@ -352,11 +354,6 @@ function addAI(client) {
 		"connection": null
 	};
 
-  // Notify new player of all existing clients
-  for (var c in clients) {
-      filterSendPlayer("newPlayer", client, clients[c].player);
-  }
-
 	// AI joining can trigger a game starting
 	if (clientCount >= MIN_PLAYERS) {
 		startGame();
@@ -367,15 +364,16 @@ function addAI(client) {
 	}
 }
 
-// Broadcast the provided event with the player over the given client with the
-// faceDown cards filtered from each hand.
-function filterBroadcastPlayer(event, client, player) {
-	//player = filterFaceDownPlayer(player);
-
-	if (client && client.broadcast)
+function broadcastPlayer(event, client, player) {
+	if (client && client.broadcast) {
+    logger.debug("registering new human player");
 		client.broadcast.emit(event, player);
-	else
+	} else {
+    logger.debug("registering new AI");
+    logger.debug("event"+event);
+    logger.debug("player"+player.id);
 		socket.sockets.emit(event, player);
+  }
 }
 
 // Verify that the current request was made by the player who's turn it is
@@ -413,37 +411,67 @@ function executeStrategy1(currentAI) {
   logger.debug("currentAI " + currentAI);
   logger.debug("currentAI.hand " + currentAI.hand);
   var rankValue = currentAI.hand.rankValue();
-  logger.debug("AI hand rank value") + rankValue;
-  if(rankValue>=4) {
+  logger.debug("AI hand rank value" + rankValue);
+  if(rankValue>=5) {
     logger.debug("Hold for AI " + currentAI.id);
-    handleHold()
+    handleHold(currentAI.hand.id)
   } else if (rankValue>1) {
-    //trade in non triple/pair cards
-    var r = currentAI.hand.getMatchingCardRank();
-    for(var i=currentAI.hand.faceDown.length-1; i>=0; i--) {
-      logger.debug(currentAI.hand.faceDown[i]);
-      //check if the rank matches the double/triple
-      if(currentAI.hand.faceDown[i].rank !== r) {
-        //drop non-matching cards
-        logger.debug("dropped a card"+i);
-        currentAI.hand.faceDown.splice(i,1);
+    if(rankValue===2 || rankValue===4) {
+      //trade in non triple/pair cards
+      var r = currentAI.hand.getMatchingCardRank();
+      for(var i=4; i>=0; i--) {
+        logger.debug(currentAI.hand.faceDown[i]);
+        //check if the rank matches the double/triple
+        if(currentAI.hand.faceDown[i].rank !== r) {
+          logger.debug("cards rank: "+currentAI.hand.faceDown[i].rank+ "  pairs rank: "+r)
+          //drop non-matching cards
+          logger.debug("dropped a card"+i);
+          currentAI.hand.faceDown.splice(i,1);
+        }
       }
-    }
 
-    //replace dropped cards
-    for(var i=0; i<(5-rankValue); i++) {
-      logger.debug("Added a card");
+      //replace dropped cards
+      var numberOfCardsDropped;
+      if(rankValue === 4) {
+        numberOfCardsDropped=2;
+      } else {
+        numberOfCardsDropped=3;
+      }
+      for(var i=0; i<numberOfCardsDropped; i++) {
+        logger.debug("Added a card");
+        currentAI.hand.addCard(FACEUP, deck.getCard());
+      }
+      currentAI.hand.showing.sort(function(a,b) {return a.value()-b.value()});
+
+      logger.debug("Discard some cards for AI " + currentAI.id + " keep all the " + r);
+      currentAI.hand.exchanged = true;
+      socket.sockets.emit("exchange", {
+  		    "handID": currentHandTurn,
+  		    "player": currentAI
+  	  });
+      nextTurn();
+    } else {
+      //Drop the card that is not part of the two pair
+      cardToDrop = currentAI.hand.getTwoPairNonMatchingCardRank();
+      for(var i=0; i<currentAI.hand.length; i++) {
+        logger.debug(currentAI.hand.faceDown[i]);
+        //check if the rank matches the double/triple
+        if(currentAI.hand.faceDown[i].rank !== r) {
+          //drop non-matching card
+          logger.debug("dropped a card"+i);
+          currentAI.hand.faceDown.splice(i,1);
+        }
+      }
+      //replace dropped card
       currentAI.hand.addCard(FACEUP, deck.getCard());
+      logger.debug("Discard one card for AI " + currentAI.id + " keep two pair");
+      currentAI.hand.exchanged = true;
+      socket.sockets.emit("exchange", {
+          "handID": currentHandTurn,
+          "player": currentAI
+      });
+      nextTurn();
     }
-    currentAI.hand.showing.sort(function(a,b) {return a.value()-b.value()});
-
-    logger.debug("Discard some cards for AI " + currentAI.id + " keep all the " + r);
-    currentAI.hand.exchanged = true;
-    socket.sockets.emit("exchange", {
-  		"handID": currentHandTurn,
-  		"player": currentAI
-  	});
-    nextTurn();
   } else {
     //drop all cards
     for(var i=currentAI.hand.faceDown.length-1; i>=0; i--) {
@@ -478,21 +506,19 @@ function nextTurn() {
 
 	logger.debug("nextTurn()");
 
-	if (gameOver()) {
-		logger.debug("Game over!");
-		resetGame();
-		return;
-	}
+  if (gameOver()) {
+    logger.debug("Game over!");
+    resetGame();
+    return;
+  }
 
 	incrementTurn();
 
 	playTurn();
+
 }
 
 // Assign the turn to the next player
-//
-// This is to be called AFTER the turn has completed for this hand
-//
 function incrementTurn() {
 
 	logger.debug("incrementTurn()");
@@ -506,10 +532,9 @@ function incrementTurn() {
 		currentHandTurn = 0;
 		currentTurn++;
 		if (currentTurn > clientCount) {// Mod
-      logger.debug("Game over!");
-      determineWinner();
+      //currentTurn = 0 //Start at the beginning again, let human players play after the UI has played
+      gameOver();
       resetGame();
-      //TODO End game
     }
 	}
 }
@@ -579,17 +604,19 @@ function determineWinner() {
 
 // Return whether or not the game is in an end state.
 function gameOver() {
+  logger.debug("checking if the game is over");
 	var numPlayersIn = clientCount;
 
 	for (var c in clients) {
 		var player = clients[c].player;
 
 		// Check if this player has finished their turn
-    if (player.holding || player.exchanged) {
+    if (player.hand.holding || player.hand.exchanged) {
 			numPlayersIn--;
 		}
 	}
 
+  logger.debug("there are "+numPlayersIn+" remaining to play");
 	if (numPlayersIn === 0) {
 		determineWinner();
 		return true;

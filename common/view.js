@@ -264,7 +264,7 @@ function addToHand(playerID, playerName, handID, card) {
 		$(playerTableArea + " .cards").append(handArea);
 	}
 
-	$(cardArea).append(htmlCard(card));
+	$(cardArea).append(htmlCard(card, playerID));
 }
 
 function disableControls() {

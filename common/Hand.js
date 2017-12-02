@@ -8,6 +8,7 @@ function Hand(id) {
 	this.faceDown = []; // List of all face down cards
 	this.holding = false;
 	this.exchanged = false;
+	this.waitingForAI = false;
 }
 
 // Add a card to the hand
@@ -36,7 +37,8 @@ Hand.prototype.rank = function() {
 	if(this.checkForFlush()) { return "flush" }
 	if(this.checkForStraight()) { return "straight" }
 	if(this.checkForTriple()) { return "triple" }
-	if(this.checkForDouble()) { return "double" }
+	if(this.checkForTwoPair()) { return "twopair" }
+	if(this.checkForPair()) { return "pair" }
 	return "single";
 }
 
@@ -97,7 +99,22 @@ Hand.prototype.checkForTriple = function() {
 	return triple;
 }
 
-Hand.prototype.checkForDouble = function() {
+Hand.prototype.checkForTwoPair = function() {
+	var twopair = false;
+	for(var i=0; i<this.cards.length-1; i++) {
+		if(this.cards[i].value() === this.cards[i+1].value()) {
+			for(var j=i+1; j<this.cards.length-1; j++) {
+				if(this.cards[j].value() === this.cards[j+1].value()) {
+					twopair = true;
+					break;
+				}
+			}
+		}
+	}
+	return twopair;
+}
+
+Hand.prototype.checkForPair = function() {
 	var dbl = false;
 	for(var i=0; i<this.cards.length-1; i++) {
 		if(this.cards[i].value() === this.cards[i+1].value()) {
@@ -114,27 +131,30 @@ Hand.prototype.rankValue = function() {
 	console.log("the rank is "+r);
 
   if (r === "royalflush")
-	  return 9;
+	  return 10;
 
   if (r === "straightflush")
-	  return 8;
+	  return 9;
 
   if (r === "four")
-	  return 7;
+	  return 8;
 
   if (r === "fullhouse")
-	  return 6;
+	  return 7;
 
   if (r === "flush")
-	  return 5;
+	  return 6;
 
   if (r === "straight")
-	  return 4;
+	  return 5;
 
   if (r === "triple")
+	  return 4;
+
+	if (r === "twopair")
 	  return 3;
 
-  if (r === "double")
+  if (r === "pair")
 		return 2;
 
 	if (r === "single")
@@ -155,6 +175,29 @@ Hand.prototype.getMatchingCardRank = function() {
 	return -1; //something went wrong
 }
 
+Hand.prototype.getTwoPairNonMatchingCardRank = function() {
+	this.cards = this.faceDown.concat(this.showing);
+	this.cards.sort(function(a,b) {return a.value()-b.value()});
+
+	var firstPairRank;
+	var secondPairRank;
+	for(var i=0; i<this.cards.length-1; i++) {
+		if(this.cards[i].value() === this.cards[i+1].value()) {
+			firstPairRank = this.cards[i].rank;
+			for(var j=i+1; j<this.cards.length-1; j++) {
+				if(this.cards[j].value() === this.cards[j+1].value()) {
+					secondPairRank = this.cards[i].rank;
+				}
+			}
+		}
+	}
+	for(var i=0; i<this.cards.length-1; i++) {
+		if(this.cards[i].rank!==firstPairRank&&this.cards[i].rank!==secondPairRank)
+		  return this.cards[i].rank;
+	}
+	return -1; //something went wrong
+}
+
 Hand.prototype.getMatchingCardRankValue = function() {
 	this.cards = this.faceDown.concat(this.showing);
 	this.cards.sort(function(a,b) {return a.value()-b.value()});
@@ -164,6 +207,48 @@ Hand.prototype.getMatchingCardRankValue = function() {
 			return this.cards[i].value();
 		}
 	}
+	return -1; //something went wrong
+}
+
+Hand.prototype.getHighestMatchingCardRankValue = function() {
+	this.cards = this.faceDown.concat(this.showing);
+	this.cards.sort(function(a,b) {return a.value()-b.value()});
+
+	for(var i=0; i<this.cards.length-1; i++) {
+		if(this.cards[i].value() === this.cards[i+1].value()) {
+			var rankValue1 = this.cards[i].value();
+			for(var j=i+1; j<this.cards.length-1; j++) {
+				if(this.cards[j].value() === this.cards[j+1].value()) {
+					return Math.max(rankValue1,this.cards[j].value());
+				}
+			}
+		}
+	}
+	return -1; //something went wrong
+}
+
+Hand.prototype.getHighestPairsHighestSuitValue = function() {
+	this.cards = this.faceDown.concat(this.showing);
+	this.cards.sort(function(a,b) {return a.value()-b.value()});
+
+	var highestRankValue;
+	for(var i=0; i<this.cards.length-1; i++) {
+		if(this.cards[i].value() === this.cards[i+1].value()) {
+			var rankValue1 = this.cards[i].value();
+			for(var j=i+1; j<this.cards.length-1; j++) {
+				if(this.cards[j].value() === this.cards[j+1].value()) {
+					highestRankValue = Math.max(rankValue1,this.cards[j].value());
+				}
+			}
+		}
+	}
+
+	for(var i=0; i<this.cards.length-1; i++) {
+		if(this.cards[i].value() === this.cards[i+1].value() && this.cards[i].value() === highestRankValue) {
+			return Math.max(this.cards[i].suitValue(), this.cards[i+1].suitValue);
+		}
+	}
+
 	return -1; //something went wrong
 }
 
@@ -216,15 +301,19 @@ Hand.prototype.highestCardsRankValue = function() {
 		else {return this.cards[4].value()}
 	}
 
-  if (r === "three")
+  if (r === "triple")
 	  return this.getMatchingCardRankValue();
 
-  if (r === "two")
+	if (r === "twopair")
+	  return this.getHighestMatchingCardRankValue();
+
+  if (r === "pair")
 		return this.getMatchingCardRankValue();
 
 	if (r === "single")
 		return this.cards[4].value();
 
+  return -1; //something went wrong
 }
 
 Hand.prototype.highestCardsSuitValue = function() {
@@ -254,15 +343,19 @@ Hand.prototype.highestCardsSuitValue = function() {
 		else {return this.cards[4].suitValue()}
 	}
 
-  if (r === "three")
+  if (r === "triple")
 	  return this.getMatchingCardSuitValue();
 
-  if (r === "two")
+	if (r === "twopair")
+	  return this.getHighestPairsHighestSuitValue();
+
+  if (r === "pair")
 		return this.getMatchingCardSuitValue();
 
 	if (r === "single")
 		return this.cards[4].suitValue();
 
+	return -1; //something went wrong
 }
 
 module.exports = Hand;
