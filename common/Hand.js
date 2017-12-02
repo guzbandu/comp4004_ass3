@@ -1,6 +1,6 @@
 "use strict";
 
-var modle = module || {};
+var module = module || {};
 
 function Hand(id) {
 	this.id = id; // Hand id
