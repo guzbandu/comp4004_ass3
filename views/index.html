@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html ng-app="PokerApp">
+  <head>
+    <title>Let's Play: Poker</title>
+    <link rel="stylesheet" type="text/css" href="../public/css/cards.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="../public/css/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="../public/css/Poker.css">
+    <script src="../public/scripts/jquery.js" type="text/javascript"></script>
+    <script src="../public/scripts/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="../public/scripts/socket.io.js" type="text/javascript"></script>
+    <script src="../common/view.js" type="text/javascript"></script>
+    <script src="../common/client-main.js" type="text/javascript"></script>
+    <script src="../common/Player.js" type="text/javascript"></script>
+    <script src="../common/Hand.js" type="text/javascript"></script>
+    <script src="../common/Card.js" type="text/javascript"></script>
+  </head>
+  <body>
+      <div id="notifications"></div>
+      <div id="game-area">
+
+          <div id="table" class="playingCards faceImages"></div>
+
+          <div id="menu">
+              <div id="controls" style="display: none">
+                  <button id="exchange-btn" disabled>Exchange</button>
+                  <button id="hold-btn" disabled>Hold</button>
+              </div>
+              <div id="game-options" style="display: none">
+                  <button id="play-again">Join Game</button>
+                  <button id="add-ai">Add AI</button>
+                  <label>Open spots: <span id="slot-count"></span></label>
+              </div>
+          </div>
+
+      </div>
+  </body>
+</html>
