@@ -14,20 +14,20 @@ Card.prototype.value = function() {
 	var r = this.rank;
 
 	if (r === "a")
-		return 13;
+		return 14;
 
 	if (r === "k")
-	  return 12;
+	  return 13;
 
 	if (r === "q")
-	  return 11;
+	  return 12;
 
 	if (r === "j")
-		return 10;
+		return 11;
 
 	r = parseInt(r);
 
-	if (r < 10 && r > 1)
+	if (r <= 10 && r > 1)
 		return r;
 
 	return -1;

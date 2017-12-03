@@ -119,16 +119,21 @@ function handleExchange(handID, cards) {
     "handID": currentHandTurn
   });
 
-  nextTurn();
+  // Set who plays next
+  callNextTurn();
+
+  playTurn();
 }
 
 // Client requested a hold for the game
 //
 function handleHold(handID) {
 
-	var client = clients[this.id];
-	if (!client)
+	var client = clients[handID];
+	if (!client) {
 		return false;
+    logger.debug("In hold could not find client"+handID)
+  }
 
 	// Verify request is not spoofed
 	if (!requestByCurrentTurn(client.player, handID))
@@ -144,7 +149,10 @@ function handleHold(handID) {
 
 	logger.debug("hold");
 
-	nextTurn();
+  // Set who plays next
+  callNextTurn();
+
+  playTurn();
 }
 
 function handleJoinGame(client) {
@@ -227,7 +235,8 @@ function filterSendPlayer(event, client, player) {
 }
 
 //The player makes all the decisions
-function playerTurn() {}
+function playerTurn() {
+}
 
 function dealHand(player, visible) {
   for(i=0; i<5; i++)
@@ -253,7 +262,9 @@ function runGame() {
 	socket.emit("gameStarted");
 
 	gameStarted = true;
-	currentTurn = 1; // Player ID 1
+
+  // Set who plays next
+  callNextTurn();
 
 	playTurn();
 }
@@ -291,6 +302,9 @@ function playTurn() {
 		"handID": currentHandTurn
 	});
 
+  // Set who plays next
+  callNextTurn();
+
 	// Play the hand based on the player type
 	client.playTurn();
 }
@@ -326,12 +340,12 @@ function addAI(client) {
 	var ai = new Player(playerID, 0, "Agent " + playerID, newHand);
 
 	// Give hand to new player
-	dealHand(ai, FACEDOWN);
-  //ai.hand.addCard(FACEDOWN, new Card("8", "hearts", FACEDOWN));
-  //ai.hand.addCard(FACEDOWN, new Card("2", "hearts", FACEDOWN));
-  //ai.hand.addCard(FACEDOWN, new Card("8", "spades", FACEDOWN));
-  //ai.hand.addCard(FACEDOWN, new Card("8", "diams", FACEDOWN));
-  //ai.hand.addCard(FACEDOWN, new Card("4", "clubs", FACEDOWN));
+	//dealHand(ai, FACEDOWN);
+  ai.hand.addCard(FACEDOWN, new Card("8", "hearts", FACEDOWN));
+  ai.hand.addCard(FACEDOWN, new Card("2", "hearts", FACEDOWN));
+  ai.hand.addCard(FACEDOWN, new Card("2", "spades", FACEDOWN));
+  ai.hand.addCard(FACEDOWN, new Card("8", "diams", FACEDOWN));
+  ai.hand.addCard(FACEDOWN, new Card("4", "clubs", FACEDOWN));
   ai.hand.faceDown.sort(function(a,b) {return a.value()-b.value()});
   ai.hand.showing.sort(function(a,b) {return a.value()-b.value()});
 
@@ -449,15 +463,15 @@ function executeStrategy1(currentAI) {
   		    "handID": currentHandTurn,
   		    "player": currentAI
   	  });
-      nextTurn();
     } else {
       //Drop the card that is not part of the two pair
       cardToDrop = currentAI.hand.getTwoPairNonMatchingCardRank();
-      for(var i=0; i<currentAI.hand.length; i++) {
-        logger.debug(currentAI.hand.faceDown[i]);
+      logger.debug("the card to drop is: "+cardToDrop);
+      for(var i=0; i<currentAI.hand.faceDown.length; i++) {
+        logger.debug(currentAI.hand.faceDown[i].rank);
         //check if the rank matches the double/triple
-        if(currentAI.hand.faceDown[i].rank !== r) {
-          //drop non-matching card
+        if(currentAI.hand.faceDown[i].rank === cardToDrop) {
+          //drop matching card
           logger.debug("dropped a card"+i);
           currentAI.hand.faceDown.splice(i,1);
         }
@@ -470,7 +484,6 @@ function executeStrategy1(currentAI) {
           "handID": currentHandTurn,
           "player": currentAI
       });
-      nextTurn();
     }
   } else {
     //drop all cards
@@ -494,30 +507,58 @@ function executeStrategy1(currentAI) {
   		"handID": currentHandTurn,
   		"player": currentAI
   	});
-    nextTurn();
   }
+  // Set who plays next
+  callNextTurn();
+
+	playTurn();
 }
 
 // Check if the game is over, if not, play the next turn
-function nextTurn() {
+function callNextTurn() {
 
 	if (!gameStarted)
 		return;
 
-	logger.debug("nextTurn()");
+	logger.debug("callNextTurn()");
 
-  if (gameOver()) {
-    logger.debug("Game over!");
-    resetGame();
-    return;
+  var humansTurn = true;
+  var gameDone = true;
+  for (var c in clients) {
+    if (!clients[c].player.hand.waitingForAI) {
+      logger.debug("Found an AI"+clients[c].player.id)
+      if(!(clients[c].player.hand.hold||clients[c].player.hand.exchanged)) {
+        logger.debug("The AI has not played yet");
+        currentTurn = clients[c].player.id;
+        humansTurn = false;
+        gameDone = false;
+        break;
+      }
+    }
+  }
+  if(humansTurn) {
+    for (var c in clients) {
+      if (clients[c].player.hand.waitingForAI) {
+        logger.debug("Found a human"+clients[c].player.id)
+        if(!(clients[c].player.hand.hold||clients[c].player.hand.exchanged)) {
+          logger.debug("The human has not played yet");
+          currentTurn = clients[c].player.id;
+          gameDone = false;
+          break;
+        }
+      }
+    }
   }
 
-	incrementTurn();
-
-	playTurn();
+  logger.debug("nextTurn: "+currentTurn);
+  if(gameDone) {
+    gameOver();
+    resetGame();
+  }
 
 }
 
+/*
 // Assign the turn to the next player
 function incrementTurn() {
 
@@ -532,12 +573,13 @@ function incrementTurn() {
 		currentHandTurn = 0;
 		currentTurn++;
 		if (currentTurn > clientCount) {// Mod
-      //currentTurn = 0 //Start at the beginning again, let human players play after the UI has played
-      gameOver();
-      resetGame();
+      currentTurn = 0 //Start at the beginning again, let human players play after the UI has played
+      //gameOver();
+      //resetGame();
     }
 	}
 }
+*/
 
 // Emit the gameOver event for the provided winner player ID
 // along with the provided description of the win case
@@ -546,7 +588,6 @@ function announceWinner(winner, details) {
   for (var c in clients) {
     var player = clients[c].player;
     player.hand.makeAllVisible();
-    player.hand.showing.sort(function(a,b) {return a.value()-b.value()});
     socket.sockets.emit("showPlayer", player)
   }
   socket.sockets.emit("gameOver", {

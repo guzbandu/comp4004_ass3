@@ -83,18 +83,6 @@ function handleHold(data) {
 		notify(data.playerName+", hand "+data.handID+" is holding", 2);
 }
 
-// data: {playerID, handID, playerName, card (not needed)}
-//
-function handleBust(data) {
-	displayBustedHand(data.playerID, data.handID);
-
-	var message = data.playerName+", hand "+data.handID+" has bust";
-	if (localPlayer && data.playerID === localPlayer.id)
-		message = "Your hand " + data.handID + " is bust!";
-
-	notify(message, 2);
-}
-
 // Handle any view updates associated with a new player entering
 //
 function playerAdded(player) {
@@ -115,6 +103,7 @@ function handleGameOver(data) {
 			   ? "You have"
 		       : "Player " + data.winnerID + " has";
 	notify(player + " won! " + data.details, null);
+	localPlayer = null;
 	firstJoinOfGame = true;
 
 	displayGameMenu();
@@ -200,16 +189,6 @@ function gameStarted() {
 function handleGameFull() {
 	updateSlotCount(0);
 	displayGameFull();
-}
-
-// Return whether or not this hand is elgibible for a split
-function canSplit(hand) {
-	if (!hand)
-		return false;
-
-	return round === 1 &&
-		   hand.showing.length === 1 &&
-		   hand.faceDown.rank === hand.showing[0].rank;
 }
 
 // Send add AI request message to server

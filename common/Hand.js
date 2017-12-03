@@ -272,6 +272,12 @@ Hand.prototype.makeAllVisible = function() {
 		this.showing.push(card);
 		console.log("moved a card from faceDown to showing "+card);
 	}
+	console.log("calling mergeSort");
+	for(var i=0; i<this.showing.length; i++)
+		console.log("element "+i+" "+this.showing[i].value());
+	this.showing.sort(function(a,b) {return a.value()-b.value()});
+	for(var i=0; i<this.showing.length; i++)
+		console.log("element "+i+" "+this.showing[i].value());
 };
 
 Hand.prototype.highestCardsRankValue = function() {
