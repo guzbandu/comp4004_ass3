@@ -39,6 +39,7 @@ function connectToServer() {
 function registerGameEvents() {
 	server.on("exchange", handleExchange);
 	server.on("hold", handleHold);
+	server.on("notifyGameRanking", handleGameRanking);
 	server.on("gameOver", handleGameOver);
 	server.on("newPlayer", handleNewPlayer);
 	server.on("playerLeft", handlePlayerLeft);
@@ -60,6 +61,7 @@ function handleDisconnect() {
 	console.log("Disconnect");
 	console.warn("Disconnected from server");
 	warn("You have been disconnected from the server", null);
+	clearWinnerResults();
 	hideMenus();
 }
 
@@ -78,7 +80,6 @@ function handleExchange(data) {
 
 // data: {playerID, handID, playerName}
 function handleHold(data) {
-	displayHeldHand(data.playerID, data.handID);
 	if (localPlayer && data.playerID != localPlayer.id)
 		notify(data.playerName+", hand "+data.handID+" is holding", 2);
 }
@@ -96,21 +97,24 @@ function playerAdded(player) {
 	drawHands(player);
 }
 
-// data: {winnerID, details}
+// data: playerName, playerRank
 //
+function handleGameRanking(data) {
+	postResultLine(data.playerName,data.playerRank);
+}
+
 function handleGameOver(data) {
-	var player = localPlayer && data.winnerID === localPlayer.id
-			   ? "You have"
-		       : "Player " + data.winnerID + " has";
-	notify(player + " won! " + data.details, null);
+
 	localPlayer = null;
 	firstJoinOfGame = true;
 
+	disableControls();
 	displayGameMenu();
 	updateSlotCount(MAX_PLAYERS);
 }
 
 function handleNewPlayer(player) {
+	clearWinnerResults();
 	notify(player.name + " has joined the game", 2);
 	console.log("New player " + JSON.stringify(player));
 	playerAdded(player);
@@ -156,25 +160,36 @@ function welcome(player) {
 	playerAdded(localPlayer);
 }
 
-// data: {playerID, handID}
+// data: {playerID, handID, testMode}
 function turn(data) {
+
+	console.log("displayTurnIndicator about to be called");
 
 	displayTurnIndicator(data.playerID, data.handID);
 
 	if (localPlayer && data.playerID === localPlayer.id) {
 		round++;
-		enableControls(data.handID);
+		enableControls(data.playerID, data.handID);
 	}
+	if(data.testMode)
+	  enableControls(data.playerID, data.handID);
 }
 
-function exchange(handID, cards) {
+function exchange(playerID, handID) {
+	var cards = $("#selectable").children();
+	var selectedCards = [];
+	for(var i=0; i<cards.length; i++) {
+		if($( cards[i] ).hasClass("ui-selected")) {
+			selectedCards.push($( cards[i] ).attr('class'));
+		}
+	}
 	disableControls();
-	server.emit("exchange", handID, cards);
+	server.emit("exchange", playerID, handID, selectedCards);
 }
 
-function hold(handID) {
+function hold(playerSID, handID) {
 	disableControls();
-	server.emit("hold", handID);
+	server.emit("hold", playerSID, handID);
 }
 
 // Reset game attributes. TODO: actually encapsulate these into a game object
@@ -199,4 +214,116 @@ function requestNewPlayer() {
 
 window.onload = function() {
 	main();
+}
+
+// For testing purposes submit a hand for a human player to start with
+function addHumanTest() {
+	console.log("Adding a human while testing"+$('input[name="n1-r"]').val());
+	var rank1 = $('input[name="n1-r"]').val();
+	var suit1 = $('input[name="n1-s"]').val();
+	var rank2 = $('input[name="n2-r"]').val();
+	var suit2 = $('input[name="n2-s"]').val();
+	var rank3 = $('input[name="n3-r"]').val();
+	var suit3 = $('input[name="n3-s"]').val();
+	var rank4 = $('input[name="n4-r"]').val();
+	var suit4 = $('input[name="n4-s"]').val();
+	var rank5 = $('input[name="n5-r"]').val();
+	var suit5 = $('input[name="n5-s"]').val();
+	var inputs = document.getElementsByClassName("test");
+	for (i = 0; i < inputs.length; i++) {
+    inputs[i].value = '';
+  }
+	server.emit("addHumanTest", rank1, suit1, rank2, suit2, rank3, suit3, rank4, suit4, rank5, suit5);
+}
+
+function addAITest() {
+	console.log("Adding an AI while testing");
+	var rank1 = $('input[name="n1-r"]').val();
+	var suit1 = $('input[name="n1-s"]').val();
+	var rank2 = $('input[name="n2-r"]').val();
+	var suit2 = $('input[name="n2-s"]').val();
+	var rank3 = $('input[name="n3-r"]').val();
+	var suit3 = $('input[name="n3-s"]').val();
+	var rank4 = $('input[name="n4-r"]').val();
+	var suit4 = $('input[name="n4-s"]').val();
+	var rank5 = $('input[name="n5-r"]').val();
+	var suit5 = $('input[name="n5-s"]').val();
+	var inputs = document.getElementsByClassName("test");
+	for (i = 0; i < inputs.length; i++) {
+    inputs[i].value = '';
+  }
+	server.emit("addAITest", rank1, suit1, rank2, suit2, rank3, suit3, rank4, suit4, rank5, suit5);
+}
+
+// For testing purposes control what cards a player gets when they exchange cards
+function exchangeHumanTest() {
+	var playerid = $('input[name="playerid"]').val();
+	console.log("The playername is:"+$('input[name="playerid"]').val());
+	var rankn1 = $('input[name="n1-r"]').val();
+	console.log("n1-r:"+$('input[name="n1-r"]').val());
+	var suitn1 = $('input[name="n1-s"]').val();
+	console.log("n1-s:"+$('input[name="n1-s"]').val());
+	var rankn2 = $('input[name="n2-r"]').val();
+	var suitn2 = $('input[name="n2-s"]').val();
+	var rankn3 = $('input[name="n3-r"]').val();
+	var suitn3 = $('input[name="n3-s"]').val();
+	console.log("n3-s:"+$('input[name="n3-s"]').val());
+	var rankn4 = $('input[name="n4-r"]').val();
+	var suitn4 = $('input[name="n4-s"]').val();
+	var rankn5 = $('input[name="n5-r"]').val();
+	var suitn5 = $('input[name="n5-s"]').val();
+	var ranko1 = $('input[name="o1-r"]').val();
+	console.log("o1-r:"+$('input[name="o1-r"]').val());
+	var suito1 = $('input[name="o1-s"]').val();
+	console.log("o1-s:"+$('input[name="o1-s"]').val());
+	var ranko2 = $('input[name="o2-r"]').val();
+	var suito2 = $('input[name="o2-s"]').val();
+	var ranko3 = $('input[name="o3-r"]').val();
+	var suito3 = $('input[name="o3-s"]').val();
+	var ranko4 = $('input[name="o4-r"]').val();
+	var suito4 = $('input[name="o4-s"]').val();
+	var ranko5 = $('input[name="o5-r"]').val();
+	var suito5 = $('input[name="o5-s"]').val();
+	console.log("o3-s:"+$('input[name="o3-s"]').val());
+	var inputs = document.getElementsByClassName("test");
+	for (i = 0; i < inputs.length; i++) {
+    inputs[i].value = '';
+  }
+	server.emit("exchangeHumanTest", playerid, rankn1, suitn1, rankn2, suitn2, rankn3, suitn3, rankn4, suitn4, rankn5, suitn5, ranko1, suito1, ranko2, suito2, ranko3, suito3, ranko4, suito4, ranko5, suito5);
+}
+
+function addAIExchangeTest() {
+	var playerid = $('input[name="playerid"]').val();
+	console.log("The playername is:"+$('input[name="playerid"]').val());
+	var rankn1 = $('input[name="n1-r"]').val();
+	console.log("n1-r:"+$('input[name="n1-r"]').val());
+	var suitn1 = $('input[name="n1-s"]').val();
+	console.log("n1-s:"+$('input[name="n1-s"]').val());
+	var rankn2 = $('input[name="n2-r"]').val();
+	var suitn2 = $('input[name="n2-s"]').val();
+	var rankn3 = $('input[name="n3-r"]').val();
+	var suitn3 = $('input[name="n3-s"]').val();
+	console.log("n3-s:"+$('input[name="n3-s"]').val());
+	var rankn4 = $('input[name="n4-r"]').val();
+	var suitn4 = $('input[name="n4-s"]').val();
+	var rankn5 = $('input[name="n5-r"]').val();
+	var suitn5 = $('input[name="n5-s"]').val();
+	var ranko1 = $('input[name="o1-r"]').val();
+	console.log("o1-r:"+$('input[name="o1-r"]').val());
+	var suito1 = $('input[name="o1-s"]').val();
+	console.log("o1-s:"+$('input[name="o1-s"]').val());
+	var ranko2 = $('input[name="o2-r"]').val();
+	var suito2 = $('input[name="o2-s"]').val();
+	var ranko3 = $('input[name="o3-r"]').val();
+	var suito3 = $('input[name="o3-s"]').val();
+	var ranko4 = $('input[name="o4-r"]').val();
+	var suito4 = $('input[name="o4-s"]').val();
+	var ranko5 = $('input[name="o5-r"]').val();
+	var suito5 = $('input[name="o5-s"]').val();
+	console.log("o3-s:"+$('input[name="o3-s"]').val());
+	var inputs = document.getElementsByClassName("test");
+	for (i = 0; i < inputs.length; i++) {
+    inputs[i].value = '';
+  }
+	server.emit("exchangeAITest", playerid, rankn1, suitn1, rankn2, suitn2, rankn3, suitn3, rankn4, suitn4, rankn5, suitn5, ranko1, suito1, ranko2, suito2, ranko3, suito3, ranko4, suito4, ranko5, suito5);
 }

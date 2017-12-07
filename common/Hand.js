@@ -9,6 +9,7 @@ function Hand(id) {
 	this.holding = false;
 	this.exchanged = false;
 	this.waitingForAI = false;
+	this.waitingForSelenium = false;
 }
 
 // Add a card to the hand
@@ -64,6 +65,7 @@ Hand.prototype.checkForFlush = function() {
 	var flush = true;
 	for(var i=0; i<this.cards.length-1; i++) {
 		if(this.cards[i].suit !== (this.cards[i+1].suit)) {
+		  //console.log("suits did not match "+this.cards[i].suit + this.cards[i+1].suit);
 			flush = false;
 			break;
 		}
@@ -77,7 +79,7 @@ Hand.prototype.checkForStraight = function() {
 		//console.log(this.cards[i].value()+""+this.cards[i+1].value()-1);
 		if(this.cards[i].value() !== (this.cards[i+1].value()-1)) {
 			//Special case for aces possibly being 1 not 14
-			if(i===3 && this.cards[i].value() === 5 && this.cards[i+1].value() === 13 ) {
+			if(i===3 && this.cards[i].value() === 5 && this.cards[i+1].value() === 14 ) {
 				//it is a straight with Ace low
 				return true;
 			}
@@ -191,7 +193,7 @@ Hand.prototype.getTwoPairNonMatchingCardRank = function() {
 			}
 		}
 	}
-	for(var i=0; i<this.cards.length-1; i++) {
+	for(var i=0; i<this.cards.length; i++) {
 		if(this.cards[i].rank!==firstPairRank&&this.cards[i].rank!==secondPairRank)
 		  return this.cards[i].rank;
 	}
@@ -272,12 +274,7 @@ Hand.prototype.makeAllVisible = function() {
 		this.showing.push(card);
 		console.log("moved a card from faceDown to showing "+card);
 	}
-	console.log("calling mergeSort");
-	for(var i=0; i<this.showing.length; i++)
-		console.log("element "+i+" "+this.showing[i].value());
 	this.showing.sort(function(a,b) {return a.value()-b.value()});
-	for(var i=0; i<this.showing.length; i++)
-		console.log("element "+i+" "+this.showing[i].value());
 };
 
 Hand.prototype.highestCardsRankValue = function() {
@@ -290,7 +287,7 @@ Hand.prototype.highestCardsRankValue = function() {
 
   if (r === "straightflush") {
 	  if(this.cards[4]===13) {return this.cards[3].value()}
-		else {return this.cards(4).value()}
+		else {return this.cards[4].value()}
 	}
 
   if (r === "four")
@@ -362,6 +359,19 @@ Hand.prototype.highestCardsSuitValue = function() {
 		return this.cards[4].suitValue();
 
 	return -1; //something went wrong
+}
+
+Hand.prototype.checkForVisibleTriple = function() {
+	var triple = false;
+	if(this.showing.length < 3)
+	  return triple;
+	for(var i=0; i<this.showing.length-2; i++) {
+		if(this.showing[i].value() === this.showing[i+1].value() && this.showing[i].value() === this.showing[i+2].value()) {
+			triple=true;
+			break;
+		}
+	}
+	return triple;
 }
 
 module.exports = Hand;

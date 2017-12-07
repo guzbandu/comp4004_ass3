@@ -138,6 +138,14 @@ function htmlCard(card, playerID) {
 	$("#table #player-" + playerID + " #cards").empty();
 }
 
+// Add to the display of end of game player ranking
+//
+function postResultLine(playerName, playerRank) {
+  console.log("posting result line");
+  var resultsLine = "<h2 class='results' id='"+playerName+"'>"+playerName + " ranked "+playerRank+"</h2>";
+	$("#game-results").append(resultsLine);
+}
+
 // Empty out the table area of the view
 //
 function clearTable() {
@@ -150,20 +158,15 @@ function displayTurnIndicator(playerID, handID) {
 
 	// Clear the current turn class
 	$(".turn").removeClass("turn");
+  $("#selectable").removeAttr('id');
 
 	// Add the new turn class
-  $("#player-" + playerID + " #hand-" + handID).addClass("turn");
+  $("#player-" + playerID + " #hand-" + handID).addClass("turn "+playerID);
 
   // Make the cards selectable
   $("#player-" + playerID + " #hand-" + handID).attr('id', 'selectable');
   $('#selectable').selectable();
 
-}
-
-// Upate the UI to display the hand as holding
-//
-function displayHeldHand(playerID, handID) {
-	$("#player-" + playerID + " #hand-" + handID).addClass("hold");
 }
 
 // Set the counter in the game menu that displays number of remaining openings
@@ -172,7 +175,7 @@ function updateSlotCount(count) {
 	$("#slot-count").html(count);
 }
 
-// Deduct one from the current slot cound value
+// Deduct one from the current slot count value
 //
 function deductSlotCount() {
 	var value = parseInt($("#slot-count").html());
@@ -196,6 +199,8 @@ function drawHands(player) {
 
 	var id = player.id;
 
+  console.log("In drawHands");
+
 	// Empty out the player area first
 	$("#player-" + id + " .cards").html("");
 
@@ -210,32 +215,16 @@ function drawHands(player) {
 	});
 }
 
-function enableControls(handID) {
+function enableControls(playerID, handID) {
 	$("#exchange-btn").attr("disabled", false);
 	$("#hold-btn").attr("disabled", false);
 
 	$("#exchange-btn").click(function() {
-    var cards = $("#selectable").children();
-    var selectedCards = [];
-    //console.log("Is it defined:"+cards.length);
-    for(var i=0; i<cards.length; i++) {
-      //console.log(cards[i]);
-      if($( cards[i] ).hasClass("ui-selected")) {
-        selectedCards.push($( cards[i] ).attr('class'));
-        //console.log("The card was selected");
-      }
-    }
-    /*
-    cards.forEach(function (card) {
-      if(card.hasClass("ui-selected")) {
-        console.log("The card was selected");
-      }
-    });
-    */
-		exchange(handID, selectedCards);
+		exchange(playerID, handID);
 	});
+  console.log("playerSID"+playerID+" handID"+handID);
 	$("#hold-btn").click(function() {
-		hold(handID);
+		hold(playerID, handID);
 	});
 
 	$("#controls").show();
@@ -275,7 +264,6 @@ function disableControls() {
 
 	$("#exchange-btn").unbind("click");
 	$("#hold-btn").unbind("click");
-	$("#split-btn").unbind("click");
 }
 
 // Display the button to join a new game
@@ -292,6 +280,22 @@ function displayGameMenu() {
 	$("#add-ai").prop("disabled", false);
 
 	$("#game-options button").unbind("click");
+
+  $("#test-add-human").click(function() {
+    addHumanTest();
+  });
+
+  $("#test-exchange-human").click(function() {
+    exchangeHumanTest();
+  });
+
+  $("#test-add-ai").click(function() {
+    addAITest();
+  });
+
+  $("#test-exchange-ai").click(function() {
+    addAIExchangeTest();
+  });
 
 	$("#play-again").click(function() {
 		joinGame();
@@ -317,4 +321,10 @@ function displayGameFull() {
 function hideMenus() {
 	disableControls();
 	$("#game-options").hide();
+}
+
+// Remove the last games winners results
+//
+function clearWinnerResults() {
+  $("#game-results").empty();
 }

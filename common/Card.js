@@ -7,8 +7,6 @@ function Card(rank, suit, hidden) {
 	this.suit = suit;
 }
 
-// Get the face value of the card. Note that we assume Ace to be of value 13.
-// A higher entity can manage the substitution for value 1 when acceptable.
 Card.prototype.value = function() {
 
 	var r = this.rank;

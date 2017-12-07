@@ -57,4 +57,14 @@ Deck.prototype.getCard = function() {
 	//return new Card("2", "spades"); // For testing split
 }
 
+//Find the card "we are fixing the AI with" and remove it from the deck
+//This is used for testing only
+Deck.prototype.removeCard = function(card) {
+	console.log("removing card from deck"+card.rank+card.suit);
+	for(var i=0; i<this.deck.length; i++) {
+		if(this.deck[i].rank === card.rank && this.deck[i].suit === card.suit)
+			this.deck.splice(i,1); //remove the card so it won't be dealt out while it is already in play this game
+	}
+}
+
 module.exports = Deck;

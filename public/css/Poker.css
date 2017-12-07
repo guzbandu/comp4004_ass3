@@ -2,21 +2,19 @@
  * The Poker CSS file
  */
 
+.game-results {
+	width: 50%;
+	margin: auto;
+}
+
+h2.results {
+  text-align: center;
+	font-family: Arial;
+	font-size: 15px;
+}
 
 .turn {
 	background-color: #33CC33;
-	border-radius: 25px;
-}
-
-/*
-#selectable {
-	background-color: #33CC33;
-	border-radius: 25px;
-}
-*/
-
-.stay {
-	background-color: #3385FF;
 	border-radius: 25px;
 }
 
@@ -25,7 +23,7 @@
 }
 
 #game-area {
-	width: 50%;
+	width: 40%;
 	margin: 0 auto;
 }
 
@@ -41,15 +39,10 @@
 	text-align: center;
 }
 
-#controls button {
-	width: 20%;
-	margin: 0 auto;
-	size: 75px;
-}
-
 .player-label {
 	margin-left: 18px;
 	font-size: medium;
+	color:white;
 }
 
 button.disabled {
