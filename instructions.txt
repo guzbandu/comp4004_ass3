@@ -38,6 +38,10 @@ A small "invisible" form was added to the bottom of the web application that all
 
 Although there is only a small number of JUnit test methods, the coverage is quite high since the injection method allows all hand combinations to be tested, both exchange strategies and the ranking to be covered.
 
+Partial injection was used, where an intial hand was setup but the actual exchange was not overridden, to test the  actual exchange logic within the strategy code. All possible combinations of exchange scenarios were covered.
+
+Each of the possible hand ranks were tested against in groups of four to ensure the ranking logic was correct. This was covered during the Player testing scenarios.
+
 
 
 Running the tests
