@@ -4,8 +4,8 @@ Installation
 This poker web application was built using Node.js v3.10.10 for Windows. You must have Node.js installed on your system in order to run the game.
 
 From the command line of your choice
-1. unzip comp4004_ass3.zip
-2. change directories into comp4004_ass3
+1. unzip Franklin-A3.zip
+2. change directories into Franklin-A3
 3. execute node app
 4. the command line should show log file entries indicating that the server is running
 Back in the windows world
@@ -55,6 +55,6 @@ Using Eclipse
 
 Using the JAR
 1. Start the poker web application as described above
-2. From the command line of your choice go the comp4004_ass3 directory
-3. Run "java -jar Poker.jar"
+2. From the command line of your choice go the Franklin-A3 directory
+3. Run "java -jar Franklin-A3.jar"
 4. The results will be displayed to the console as well as placed in the file PokerTests.txt

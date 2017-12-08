@@ -24,6 +24,6 @@ Using Eclipse
 
 Using the JAR
 1. Start the poker web application as described above
-2. From the command line of your choice go the comp4004_ass3 directory
+2. From the command line of your choice go the Franklin-A3 directory
 3. Run "java -jar Poker.jar"
 4. The results will be displayed to the console as well as placed in the file PokerTests.txt
