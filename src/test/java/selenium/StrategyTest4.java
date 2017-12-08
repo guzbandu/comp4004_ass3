@@ -16,7 +16,7 @@ public class StrategyTest4 {
 
 	@BeforeClass
 	public static void openBrowser() {
-		System.setProperty("webdriver.gecko.driver", "bin/geckodriver");
+		System.setProperty(Utils.GECKO_PROPERTY, Utils.GECKO_DRIVER);
 		driver = new FirefoxDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 	}

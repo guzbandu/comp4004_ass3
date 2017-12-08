@@ -12,6 +12,8 @@ import org.openqa.selenium.WebElement;
 
 public class Utils {
 	
+	public static final String GECKO_PROPERTY = "webdriver.gecko.driver";
+	public static final String GECKO_DRIVER = "bin/geckodriver.exe";
 	public static final String BASE_URL = "http://localhost:8080/";
 	public static final String FLUSH_GAME = "api/flush-game";
 	public static final String PREP_REAL_GAME = "api/prep-game";
