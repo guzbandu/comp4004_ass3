@@ -42,6 +42,8 @@ Partial injection was used, where an intial hand was setup but the actual exchan
 
 Each of the possible hand ranks were tested against in groups of four to ensure the ranking logic was correct. This was covered during the Player testing scenarios.
 
+The code for hand ranking was written before the clarifications regarding how ranking should be done. As a result a slightly different ranking strategy is used by this application. First and foremost the application ranks by hand so straight flush versus straight versus flush. In the case where two players have the same hand rank the highest card rank is then considered. So a pair of A's would be beat a pair of 2's. A straight with an 8 high would beat a straight with a 5 high. When the highest ranking card is tied then the cards suit is considered and the highest suit will win. So the pair of A's with the spade A will beat the other pair of A's. I apologize that I did not have time to rewrite this logic once the desired functionality was clarified. The application does at least apply a consistent hand ranking strategy that is reproducible and testable.
+
 
 
 Running the tests
