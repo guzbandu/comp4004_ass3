@@ -9,6 +9,7 @@ import org.junit.runners.Suite;
 	PreGameTests.class,
 	JoinGameTests.class,
 	NormalPlayTests.class,
+	ExchangeTests.class,
 	PlayerTests.class,
 	StrategyTest1.class,
 	StrategyTest2.class,

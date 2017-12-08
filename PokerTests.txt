@@ -3,6 +3,10 @@ Running test: PreGameTests.noPlayersAdded... PASS
 Running test: JoinGameTests.playerJoin... PASS
 Running test: JoinGameTests.AIJoin... PASS
 Running test: NormalPlayTests.fourAIPlay... PASS
+Running test: ExchangeTests.tradeAllCards... PASS
+Running test: ExchangeTests.tradeOneCard... PASS
+Running test: ExchangeTests.tradeTwoCards... PASS
+Running test: ExchangeTests.tradeThreeCards... PASS
 Running test: PlayerTests.playerSequence1... PASS
 Running test: PlayerTests.playerSequence2... PASS
 Running test: PlayerTests.playerSequence3... PASS

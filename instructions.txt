@@ -1,0 +1,56 @@
+Installation
+------------
+
+This poker web application was built using Node.js v3.10.10 for Windows. You must have Node.js installed on your system in order to run the game.
+
+From the command line of your choice
+1. unzip comp4004_ass3.zip
+2. change directories into comp4004_ass3
+3. execute node app
+4. the command line should show log file entries indicating that the server is running
+Back in the windows world
+5. open a web browser of your choice
+6. navigate to http://localhost:8080
+
+
+
+Game Play
+---------
+
+Upon connecting you will have the choice of either joining the game as a human player or adding AI players. There may be up to a maximum of four players. There must be at least two players for the game to start. If you want more than one human player to join then they must join through separate browser windows.
+Once the minimum two players, computer or human, have been added, the game countdown will begin. When the countdown reaches zero, the game will begin and players will no longer be able to join until the current game finishes.
+Players that connect between games, but do not join the game, are spectators. Attempting to join the game will result in being disconnected.
+
+Each AI will play first, in the order that they were added. Initially all of the AI's cards will be hidden but if the AI exchanges cards the new cards are displayed face up. Human players play next in the order that they were added.
+As a human player you will have the choice of exchanging one or more cards for new cards or holding and keeping exactly the cards you presently have. If you want to select more than one card hold down the CTRL key while clicking on the cards.
+After all players have either exchanged cards or held each players hand will ranked relative to the other players hands and the results will be displayed at the top of the screen.
+
+Once a game ends, the original game menu will re-appear at the bottom of the screen. This will allow you to play again by either adding new human or computer players.
+
+
+
+Testing
+-------
+
+The test suite uses the Firefox Selenium web driver combined with the JUnit test framework. Using these two frameworks together assertions are made on the HTML/CSS content displayed by the web app.
+
+A small "invisible" form was added to the bottom of the web application that allows the testing framework to inject "rigged" hands and exchange cards. This allows for testing of the various hand scenarios and hold versus exchange strategies that the AI is programmed with.
+
+Although there is only a small number of JUnit test methods, the coverage is quite high since the injection method allows all hand combinations to be tested, both exchange strategies and the ranking to be covered.
+
+
+
+Running the tests
+-----------------
+
+Using Eclipse
+1. Start the poker web application as described above
+2. Open the Eclipse IDE
+3. Import the project using: File > Import > General > Existing Project
+4. Under src/test/java/selenium right click SeleniumTestSuite select Run As > Junit Test
+
+Using the JAR
+1. Start the poker web application as described above
+2. From the command line of your choice go the comp4004_ass3 directory
+3. Run "java -jar Poker.jar"
+4. The results will be displayed to the console as well as placed in the file PokerTests.txt

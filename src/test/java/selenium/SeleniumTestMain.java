@@ -22,6 +22,7 @@ public class SeleniumTestMain {
 		testPreGame(logger);
 		testJoinGame(logger);
 		testNormalPlay(logger);
+		testExchanges(logger);
 		testPlayer(logger);
 		testStrategy1(logger);
 		testStrategy2(logger);
@@ -85,6 +86,50 @@ public class SeleniumTestMain {
 			NormalPlayTests.openBrowser();
 			normalplay.fourAIPlay();
 			NormalPlayTests.closeBrowser();
+			logger.logTestResult(true);
+		} catch (AssertionError e) {
+			logger.logTestResult(false, e.toString());
+		}
+	}
+	
+	public static void testExchanges(Logger logger) {
+		ExchangeTests exchangetests = new ExchangeTests();
+		
+		try {
+			logger.logStartTest("ExchangeTests.tradeAllCards");
+			ExchangeTests.openBrowser();
+			exchangetests.tradeAllCards();
+			ExchangeTests.closeBrowser();
+			logger.logTestResult(true);
+		} catch (AssertionError e) {
+			logger.logTestResult(false, e.toString());
+		}
+		
+		try {
+			logger.logStartTest("ExchangeTests.tradeOneCard");
+			ExchangeTests.openBrowser();
+			exchangetests.tradeOneCard();
+			ExchangeTests.closeBrowser();
+			logger.logTestResult(true);
+		} catch (AssertionError e) {
+			logger.logTestResult(false, e.toString());
+		}
+		
+		try {
+			logger.logStartTest("ExchangeTests.tradeTwoCards");
+			ExchangeTests.openBrowser();
+			exchangetests.tradeTwoCards();
+			ExchangeTests.closeBrowser();
+			logger.logTestResult(true);
+		} catch (AssertionError e) {
+			logger.logTestResult(false, e.toString());
+		}
+		
+		try {
+			logger.logStartTest("ExchangeTests.tradeThreeCards");
+			ExchangeTests.openBrowser();
+			exchangetests.tradeThreeCards();
+			ExchangeTests.closeBrowser();
 			logger.logTestResult(true);
 		} catch (AssertionError e) {
 			logger.logTestResult(false, e.toString());

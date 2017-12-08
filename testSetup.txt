@@ -1,0 +1,25 @@
+Testing
+-------
+
+The test suite uses the Firefox Selenium web driver combined with the JUnit test framework. Using these two frameworks together assertions are made on the HTML/CSS content displayed by the web app.
+
+A small "invisible" form was added to the bottom of the web application that allows the testing framework to inject "rigged" hands and exchange cards. This allows for testing of the various hand scenarios and hold versus exchange strategies that the AI is programmed with.
+
+Although there is only a small number of JUnit test methods, the coverage is quite high since the injection method allows all hand combinations to be tested, both exchange strategies and the ranking to be covered.
+
+
+
+Running the tests
+-----------------
+
+Using Eclipse
+1. Start the poker web application as described above
+2. Open the Eclipse IDE
+3. Import the project using: File > Import > General > Existing Project
+4. Under src/test/java/selenium right click SeleniumTestSuite select Run As > Junit Test
+
+Using the JAR
+1. Start the poker web application as described above
+2. From the command line of your choice go the comp4004_ass3 directory
+3. Run "java -jar Poker.jar"
+4. The results will be displayed to the console as well as placed in the file PokerTests.txt

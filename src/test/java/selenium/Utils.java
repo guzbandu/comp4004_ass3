@@ -13,7 +13,7 @@ import org.openqa.selenium.WebElement;
 public class Utils {
 	
 	public static final String GECKO_PROPERTY = "webdriver.gecko.driver";
-	public static final String GECKO_DRIVER = "bin/geckodriver";
+	public static final String GECKO_DRIVER = "bin/geckodriver.exe";
 	public static final String BASE_URL = "http://localhost:8080/";
 	public static final String FLUSH_GAME = "api/flush-game";
 	public static final String PREP_REAL_GAME = "api/prep-game";
@@ -170,4 +170,17 @@ public class Utils {
 		return true;
 	}
 	
+	public static boolean doesHandContainCard(WebDriver driver, Card card, int playerId) {
+		boolean cardMatches = false;
+		Hand playerHand = playerHand(driver, playerId);
+		for(int i=0; i<playerHand.numCardsShowing(); i++) {
+			System.out.println("card rank:"+card.getRank()+" showing card rank:"+playerHand.getShowingCard(i).getRank());
+			System.out.println("card suit:"+card.getSuit()+" showing card suit:"+playerHand.getShowingCard(i).getSuit());
+			if( card.getRank().equals(playerHand.getShowingCard(i).getRank())&&card.getSuit().equals(playerHand.getShowingCard(i).getSuit()) ) {
+				cardMatches = true;
+				break;
+			}				
+		}
+		return cardMatches;
+	}
 }
