@@ -177,32 +177,23 @@ function handleExchange(userid, handID, cards) {
 // Client requested a hold for the game
 //
 function handleHold(userid, handID) {
-  logger.debug("handle hold called: "+userid+" handID: "+handID);
 	var player = clients[userid];
 	if (!player) {
-    logger.debug("In hold could not find client"+userid)
     return false;
   }
 
-  logger.debug("requestByCurrentTurn:"+requestByCurrentTurn(player.player, handID))
   // Verify request is not spoofed
 	if (!requestByCurrentTurn(player.player, handID)) {
-    logger.debug("failed requestByCurrentTurn check");
     return;
   }
 
-
-  logger.debug("holding "+player.player.hand.holding);
 	player.player.hand.holding = true;
-  logger.debug("holding "+player.player.hand.holding);
 
 	socket.sockets.emit("hold", {
 		"playerID": currentTurn,
 		"handID": currentHandTurn,
 		"playerName": player.player.name
 	});
-
-	logger.debug("hold");
 
   // Set who plays next
   callNextTurn();
@@ -310,11 +301,9 @@ function exchangeAITest(playerid, rank1, suit1, rank2, suit2, rank3, suit3, rank
     "handID": currentHandTurn
   });
 
-  logger.debug("ending exchangeAITest calling callNextTurn()");
   // Set who plays next
   callNextTurn();
 
-  logger.debug("ending exchangeAITest calling playTurn()");
   playTurn();
 }
 
@@ -752,8 +741,6 @@ function broadcastPlayer(event, client, player) {
 // and that the handID matches the current turn hand.
 function requestByCurrentTurn(player, handID) {
   logger.debug("playerid:"+player.id+" currentTurn:"+currentTurn+" handID:"+handID+"currentHandTurn"+currentHandTurn);
-  logger.debug("player.id === currentTurn"+player.id === currentTurn);
-  logger.debug("handID === currentHandTurn"+handID === currentHandTurn);
 	return player.id === currentTurn && handID === currentHandTurn;
 }
 
@@ -764,8 +751,6 @@ function AITurn() {
   if(currentTurn === -1)
     return;
 
-	logger.debug("AIs turn: " + currentTurn);
-
   var client = getClientByID(currentTurn);
 	if (!client) {
 		logger.info("Something went wrong. AI player not found!");
@@ -775,7 +760,6 @@ function AITurn() {
   logger.debug("The client.sid is: "+client.player.sid);
 
   if(client.player.sid !== null) {
-    logger.debug("This is a human");
     return;
   }
 
